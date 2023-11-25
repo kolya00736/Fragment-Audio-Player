@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <title>Fragment Audio Player</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fragment Audio Player</h1>
+
+    <input type="file" id="jsonFileInput" accept=".json">
+	<br><br>
+    <div id="musicFragmentList"></div>
+    <br>
+    <audio id="audioPlayer" controls>
+        <source id="audioSource" src="" type="audio/mp3">
+    </audio>
+
+    <script>
+        const jsonFileInput = document.getElementById("jsonFileInput");
+        const musicFragmentList = document.getElementById("musicFragmentList");
+        const audioPlayer = document.getElementById("audioPlayer");
+        const audioSource = document.getElementById("audioSource");
+
+        jsonFileInput.addEventListener("change", function(e) {
+            const selectedFile = e.target.files[0];
+            if (!selectedFile) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileContent = e.target.result;
+                try {
+                    const jsonData = JSON.parse(fileContent);
+                    displayMusicFragments(jsonData);
+                } catch (error) {
+                    alert("Ошибка при парсинге JSON файла: " + error);
+                    jsonFileInput.value = '';
+                }
+            };
+
+            reader.readAsText(selectedFile);
+        });
+
+        function displayMusicFragments(data) {
+            musicFragmentList.innerHTML = "";
+			
+            const table = document.createElement("table");
+            const tableHeader = table.createTHead();
+            const headerRow = tableHeader.insertRow(0);
+            const headers = ["URL", "Начало", "Конец", "Действие"];
+            headers.forEach(headerText => {
+                const th = document.createElement("th");
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+
+            const tableBody = table.createTBody();
+            data.forEach(fragment => {
+                const row = tableBody.insertRow();
+                const urlCell = row.insertCell(0);
+                urlCell.textContent = fragment.url;
+                const startCell = row.insertCell(1);
+                startCell.textContent = fragment.start + " сек";
+                const endCell = row.insertCell(2);
+                endCell.textContent = fragment.end + " сек";
+                const buttonCell = row.insertCell(3);
+                const playButton = document.createElement("button");
+                playButton.textContent = "Воспроизвести";
+                playButton.addEventListener("click", () => playMusicFragment(fragment.url, fragment.start, fragment.end));
+                buttonCell.appendChild(playButton);
+            });
+
+            musicFragmentList.appendChild(table);
+        }
+
+        function playMusicFragment(url, start, end) {
+			audioPlayer.currentTime = 0;
+            audioSource.src = url;
+            audioPlayer.load();
+            
+            audioPlayer.onloadedmetadata = function() {
+                audioPlayer.currentTime = start;
+                audioPlayer.play();
+            };
+
+            audioPlayer.ontimeupdate = function() {
+                if (audioPlayer.currentTime >= end) {
+                    audioPlayer.pause();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+[
+    {
+        "url": "sample1.mp3",
+        "start": 10,
+        "end": 20
+    },
+    {
+        "url": "sample2.mp3",
+        "start": 40,
+        "end": 60
+    }
+]
